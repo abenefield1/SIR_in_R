@@ -14,7 +14,6 @@ PopulationSize<-1000
 R0<- (parameters$birth * PopulationSize * parameters$trans) / ((parameters$death*PopulationSize) * (parameters$death + parameters$rec))
 R0
 
-
 #birth<-1/70
 #death<-1/70
 #beta<-0.2*365
