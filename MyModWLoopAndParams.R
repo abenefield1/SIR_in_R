@@ -7,37 +7,15 @@ require(gridExtra)
 rm(list=ls())
 
 # Added a new function to create the data for k classes, so here it just creates the parameters
-#parameters=data.frame(rec=0.2*365,trans=0.005*365, death=1/70,birth=1/70, mut=0.5*365)
 parameters=data.frame(rec=0.2,trans=0.005, death=.1,birth=.1, mut=0.05)
 
 PopulationSize<-1000
 R0<- (parameters$birth * PopulationSize * parameters$trans) / ((parameters$death*PopulationSize) * (parameters$death + parameters$rec))
 R0
 
-#birth<-1/70
-#death<-1/70
-#beta<-0.2*365
-#gamma<-0.19*365
-
 
 # Time points
 time=seq(from=1,to=150,by=1/365)
-
-
-####### relative frequency sum ########
-# Computes the term \sum_{k=0}^n I_k ), which appears in the S and R equations
-#sum_over_relative_frequencies = function(i, min, max){
-#  s = 0
-#  ct = 0
-#  for (I_k in i){
-#    val = I_k
-#    s = s + val
-#    ct = ct + 1
-#  }
-#  return(s)
-#}
-
-# SIR model function
 
 
 ##### detection function ######
@@ -47,7 +25,6 @@ det = function(k, a = 1, dMax=0.98){
 }
 
 #### Build data for n_k infection classes ######
-
 # Builds the initial state data vector. Takes total number of infection classes (n_k, which includes I0, e.g. 20 infection classes run from 0 to 19) and then total pop size. This will be distributed such that only S and I0 have individuals, otherwise all 0s.
 build_data <- function(n_k, total_pop_size){
   
@@ -64,12 +41,10 @@ build_data <- function(n_k, total_pop_size){
 }
 
 initial_states <- build_data(n_k=101,total_pop_size = PopulationSize)
-
 initial_states
 
 
 ######### SIR Model for k classes #######
-
 sir_modelAW <- function(time, state, parameters){
   
   # Get total pop size by summing over state vector
@@ -94,14 +69,10 @@ sir_modelAW <- function(time, state, parameters){
   deltas <- numeric(all_states)
   
   i = state[2:n]
-  
-  # Computes the term \sum_{l=0}^n (1 - theta* tau_l)*i_l ), which appears in the equations for S and R
- # sum_of_rel = sum_over_relative_frequencies(i, 0, n)
-  #sum_of_rel=sum(i)
+
   
   ## S #########################################
   #First Delta is for susceptibles - don't think this needs to be iterated over all classes b/c of the sum_of_rel function? Could be wrong.
- # deltas[1] = parameters$birth*N - (state['S']*(parameters$death + parameters$trans*(sum_of_rel)))
   deltas[1] = parameters$birth*N - (state['S']*(parameters$death + parameters$trans*sum(state[which(names(state)!='S' & names(state)!='R')])))
   
   ### I0 ########################################
