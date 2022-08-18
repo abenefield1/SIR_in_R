@@ -10,17 +10,17 @@ rm(list=ls())
 parameters=data.frame(rec=0.2,trans=0.005, death=.1,birth=.1, mut=0.05)
 
 PopulationSize<-1000
-R0<- (parameters$birth * PopulationSize * parameters$trans) / ((parameters$death*PopulationSize) * (parameters$death + parameters$rec))
-R0
+#R0<- (parameters$birth * PopulationSize * parameters$trans) / ((parameters$death*PopulationSize) * (parameters$death + parameters$rec))
+#R0
 
 
 # Time points
-time=seq(from=1,to=150,by=1/365)
+time=seq(from=1,to=300,by=1/365)
 
 
 ##### detection function ######
 # Function to get detection rate with is an exponential decay function scaled by "a"
-det = function(k, a = 1, dMax=0.98){
+det = function(k, a = 1, dMax=0){
   return(dMax*exp(-k*a))
 }
 
@@ -40,9 +40,10 @@ build_data <- function(n_k, total_pop_size){
   return(state)
 }
 
-initial_states <- build_data(n_k=101,total_pop_size = PopulationSize)
+initial_states <- build_data(n_k=3,total_pop_size = PopulationSize)
 initial_states
 
+Q<-1000 # REMOVE ME - temp pop size
 
 ######### SIR Model for k classes #######
 sir_modelAW <- function(time, state, parameters){
@@ -69,11 +70,12 @@ sir_modelAW <- function(time, state, parameters){
   deltas <- numeric(all_states)
   
   i = state[2:n]
-
+  
   
   ## S #########################################
   #First Delta is for susceptibles - don't think this needs to be iterated over all classes b/c of the sum_of_rel function? Could be wrong.
-  deltas[1] = parameters$birth*N - (state['S']*(parameters$death + parameters$trans*sum(state[which(names(state)!='S' & names(state)!='R')])))
+  deltas[1] = parameters$birth*Q - (state['S']*(parameters$death + parameters$trans*sum(state[which(names(state)!='S' & names(state)!='R')])))
+  
   
   ### I0 ########################################
   # Second delta is I0 which is unique b/c nothing mutates into it. So it gets its own function here, gaining new individuals from S in the first half, then losing individuals through recovery, mutation to I1, death, and detection.
@@ -94,7 +96,7 @@ sir_modelAW <- function(time, state, parameters){
   inf_indices <- which((!names(state) %in% excluded_names))
   
   # Not sure If I need to do this, but I've set this up do recovery from class I0 and class In as well as death of recovered individuals. I then update this with recoveries from all other infection classes within the loop below. Then I put that into the deltas vector at the end. there may be a more elegant way of doing this using the sum_of_rel variable/function but I wasn't sure how that worked.
-  dR <- (parameters$rec +det(k=0))*state[2]+(parameters$rec + det(k=all_states-1))*state[all_states-1]-parameters$death*state[all_states]
+  dR <- (parameters$rec +det(k=0))*state['I0']+(parameters$rec + det(k=all_states-2))*state[all_states-1] - parameters$death*state['R']
   
   # This iterator tracks how many mutations we are from 0, which is just tough to do when using indices, but juggling indices is tough if we try and iterate over the infection class number itself. So I just got lazy about it tbh. Hopefully it works?
   it <- 1
@@ -105,18 +107,19 @@ sir_modelAW <- function(time, state, parameters){
     deltas[i] <- parameters$trans*state['S']*state[i] - (parameters$rec + parameters$mut + parameters$death + det(k=it))*state[i] + parameters$mut*state[i-1]
     
     #get our recovered change - just add to it each time I think? This makes sense? Maybe? Hmmm.
-    dR <- dR + (parameters$rec + det(k=it))*state[i]
+    dR <- dR + (parameters$rec + det(k=it))*state[i] - parameters$death*state['R']
     
     #update our mutation iterator
     it <- it+1
   }
   
-  #put the recovered change into the final deltas slot
-  deltas[all_states] <- dR
+  #dR <- dR - parameters$death*(state['R']+dR)
   
-  #return deltas
+  #   #put the recovered change into the final deltas slot
+  deltas[all_states] <- dR
+  #   
+  #   #return deltas
   return(list(deltas))
-  return(i)
 }
 
 initial_states
@@ -125,7 +128,8 @@ sir_modelAW(time, initial_states, parameters)
 
 
 ###### Solving the differential equations: ######
-output<-as.data.frame(ode(y=initial_states,func = sir_modelAW,parms=parameters,times = time))
+output<-as.data.frame(ode(y=initial_states,func = sir_modelAW,parms=parameters,times = time, method="ode45"))
+max(rowSums(output[,-1]))
 
 # Get the sums of all infected classes to plot as a separate line
 sums<-output[,c(-2, -length(output))] # remove the S and R class
