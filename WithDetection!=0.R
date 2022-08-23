@@ -3,24 +3,26 @@ require(ggplot2)
 require(reshape2)
 library(dplyr)
 require(gridExtra)
+library(facet_grid)
+library(latex2exp)
 
 rm(list=ls())
 
 # Added a new function to create the data for k classes, so here it just creates the parameters
 parameters=data.frame(rec=0.2,trans=0.005, death=.1,birth=.1, mut=0.05)
 
-PopulationSize<-1000
+PopulationSize<-10000
 #R0<- (parameters$birth * PopulationSize * parameters$trans) / ((parameters$death*PopulationSize) * (parameters$death + parameters$rec))
 #R0
 
 
 # Time points
-#time=seq(from=1,to=150,by=1/365)
-time=seq(from=1,to=150)
+time=seq(from=1,to=150,by=1/365)
+
 
 ##### detection function ######
 # Function to get detection rate with is an exponential decay function scaled by "a"
-det = function(k, a = 1, dMax=0){
+det = function(k, a = 0.5, dMax=0.98){
   return(dMax*exp(-k*a))
 }
 
@@ -40,10 +42,8 @@ build_data <- function(n_k, total_pop_size){
   return(state)
 }
 
-initial_states <- build_data(n_k=3,total_pop_size = PopulationSize)
+initial_states <- build_data(n_k=12,total_pop_size = PopulationSize)
 initial_states
-
-Q<-1000 # REMOVE ME - temp pop size
 
 ######### SIR Model for k classes #######
 sir_modelAW <- function(time, state, parameters){
@@ -74,7 +74,7 @@ sir_modelAW <- function(time, state, parameters){
   
   ## S #########################################
   #First Delta is for susceptibles - don't think this needs to be iterated over all classes b/c of the sum_of_rel function? Could be wrong.
-  deltas[1] = parameters$birth*Q - (state['S']*(parameters$death + parameters$trans*sum(state[which(names(state)!='S' & names(state)!='R')])))
+  deltas[1] = parameters$birth*PopulationSize - (state['S']*(parameters$death + parameters$trans*sum(state[which(names(state)!='S' & names(state)!='R')])))
   
   
   ### I0 ########################################
@@ -159,7 +159,7 @@ head(out_long)
 ####### Plotting the prevalence over time #######
 #quartz(width=10,height=6)
 ggplot(data = out_long,                                               
-       aes(x = time, y = value, colour = class, group = variable, size=class)) +  
+       aes(x = time, y = value/10000, colour = class, group = variable, size=class)) +  
   geom_line() +                                                          
   xlab("Time (years)")+                                                  
   ylab("Prevalence") + scale_color_discrete(name="State")+
