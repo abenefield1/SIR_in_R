@@ -82,6 +82,10 @@ ggplot(data = out_long,
        aes(x = time, y = value, colour = class, group = class)) +  
   geom_line() +                                                          
   xlab("Time (years)")+                                                  
-  ylab("Prevalence") + scale_color_discrete(name="State")                                
+  ylab("Prevalence") + scale_color_discrete(name="State") +
+  scale_color_manual(values=c("red", "#e4ab18", "#e4ab18", "blue", "darkgreen", "black"))+
+  scale_size_manual(values=c(0.5,0.5, 0.5,0.75,0.75,0.75))
+
+  
 
 #rm(list=ls())
