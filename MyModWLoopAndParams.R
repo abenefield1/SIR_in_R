@@ -113,7 +113,7 @@ sir_modelAW <- function(time, state, parameters){
     deltas[i] <- parameters$trans*state['S']*state[i] - (parameters$rec + parameters$mut + parameters$death + det(k=it))*state[i] + parameters$mut*state[i-1]
     
     #get our recovered change - just add to it each time I think? This makes sense? Maybe? Hmmm.
-    dR <- dR + (parameters$rec + det(k=it))*state[i] - parameters$death*state['R']
+    dR <- dR + (parameters$rec + det(k=it))*state[i] 
     
     #update our mutation iterator
     it <- it+1
