@@ -81,7 +81,7 @@ prob = ODEProblem(SIR, u0, tspan, θ)
 plt = plot(frame=:box, legend=:outerright)
 xlabel!(L"t")
 ylabel!("count")
-colors = [:darkgreen,:red,  :orange, :yellow, :royalblue]
+colors = [:darkgreen, :red,  :orange, :yellow, :royalblue]
 labs = [L"S", L"I_0", L"I_1", L"I_2", L"R"]
 for k in 1:nₖ+2
     plot!(sol.t, [sol.u[t][k] for t in 1:length(sol.u)], lw=2, label=labs[k], c=colors[k])
@@ -97,10 +97,10 @@ plt
 =#
 
 
-# This runs on a single core on my laptop in 30-40mins
+# This runs on a single core on my laptop in about 10 minutes
 function matplt()
     A = 0.0:0.01:1
-    K = 3:100
+    K = 3:50
     mat = zeros(length(A), length(K))
     tspan = (0.,1000.)
     popsize = 1000.
@@ -117,14 +117,15 @@ function matplt()
             mat[i,j] = sol.u[end][end]/popsize
         end 
     end
-
-    heatmap(mat, clim=(0.6,.75), dpi=200,colorbar_title="Equilibrium recovery proportion")
-    xlabel!(string("Number of variants ", L"(k)"))
-    ylabel!(string("Detection efficacy decay rate ",L"(a)"))
-    xticks!(0:5:50, [string(x+3) for x in 0:5:45])
-
-    savefig("strains_vs_detectability.png")
+    return mat
 end 
 
 
-matplt()
+mat = matplt()
+
+heatmap(mat, clim=(0.6,.75), dpi=200,colorbar_title="Equilibrium recovery proportion")
+xlabel!(string("Number of variants ", L"(k)"))
+ylabel!(string("Detection efficacy decay rate ",L"(a)"))
+xticks!(0:5:50, [string(x+3) for x in 0:5:45])
+
+savefig("strains_vs_detectability.png")
