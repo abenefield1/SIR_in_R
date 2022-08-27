@@ -1,5 +1,6 @@
 using DifferentialEquations
 using Plots
+using Plots.PlotMeasures
 using LaTeXStrings
 
 #=
@@ -123,7 +124,7 @@ end
 
 mat = matplt()
 
-heatmap(mat, clim=(0.6,.75), dpi=200,colorbar_title="Equilibrium recovery proportion")
+heatmap(mat, clim=(0.6,.75), size=(800,400),dpi=200,colorbar_title="Equilibrium recovery proportion")
 xlabel!(string("Number of variants ", L"(k)"))
 ylabel!(string("Detection efficacy decay rate ",L"(a)"))
 xticks!(0:5:50, [string(x+3) for x in 0:5:45])
