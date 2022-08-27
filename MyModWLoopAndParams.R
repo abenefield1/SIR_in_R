@@ -94,7 +94,7 @@ sir_modelAW <- function(time, state, parameters){
   # Pulling the indices for all infection classes except for I0 and In, since they should all have the same equation for change over time: gains from susceptibles based on transmission, loss from recovery, mutation, death, and detection, then gain from mutation in the previous class.
   
   # Construct the last infection class name using n
-  last_name <- paste0('I', n)
+  last_name <- paste0('I', n-1)
   # vector of names to exclude
   excluded_names <- c("S", "I0", last_name, "R")
   
