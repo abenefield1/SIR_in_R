@@ -8,7 +8,7 @@ rm(list=ls())
 
 # Added a new function to create the data for k classes, so here it just creates the parameters
 parameters=data.frame(rec=0.2,trans=0.05, death=.1,birth=.1, mut=0.05)
-k=2
+#k=2
 PopulationSize<-1000
 #R0<- (parameters$birth * PopulationSize * parameters$trans) / ((parameters$death*PopulationSize) * (parameters$death + parameters$rec))
 #R0
@@ -40,7 +40,7 @@ build_data <- function(n_k, total_pop_size){
   return(state)
 }
 
-initial_states <- build_data(n_k=k,total_pop_size = PopulationSize)
+initial_states <- build_data(n_k=2,total_pop_size = PopulationSize)
 initial_states
 
 Q<-1000 # REMOVE ME - temp pop size
@@ -135,6 +135,7 @@ sir_modelAW(time, initial_states, parameters)
 
 ###### Solving the differential equations: ######
 output<-as.data.frame(ode(y=initial_states,func = sir_modelAW,parms=parameters,times = time, method="ode45"))
+
 max(rowSums(output[,-1]))
 
 # Get the sums of all infected classes to plot as a separate line
@@ -184,13 +185,9 @@ beta<-parameters$trans
 d<-formals(det)$dMax
 delta<-parameters$death
 nu<-parameters$rec
-b<-parameters$birth
 
 # Analytical R0:
-(beta*exp(alpha))/(d + delta*exp(alpha) + nu*exp(alpha))
 
 
 # Analytical equilibrium:
-(b*exp(alpha)*beta - d*delta - exp(alpha)*delta^(2) - exp(alpha)*delta*nu)/
-  
-  (beta*(d + exp(alpha)*delta + exp(alpha)*nu))
+-((delta*(d - exp(alpha)*Q*beta + exp(alpha)*delta + exp(alpha)*nu))/(beta*(d + exp(alpha)*delta + exp(alpha)*nu)))
