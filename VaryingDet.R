@@ -7,8 +7,8 @@ require(gridExtra)
 rm(list=ls())
 
 # Added a new function to create the data for k classes, so here it just creates the parameters
-parameters=data.frame(rec=0.2,trans=0.05, death=.1,birth=.1, mut=0.05)
-k=2
+parameters=data.frame(rec=0.2,trans=0.005, death=.1,birth=.1, mut=0.05)
+
 PopulationSize<-1000
 #R0<- (parameters$birth * PopulationSize * parameters$trans) / ((parameters$death*PopulationSize) * (parameters$death + parameters$rec))
 #R0
@@ -16,11 +16,11 @@ PopulationSize<-1000
 
 # Time points
 #time=seq(from=1,to=150,by=1/365)
-time=seq(from=1,to=150,by=1/365)
+time=seq(from=1,to=150)
 
 ##### detection function ######
 # Function to get detection rate with is an exponential decay function scaled by "a"
-det = function(k, a = 1, dMax=1){
+det = function(k, a = 0.9, dMax=0.98){
   return(dMax*exp(-k*a))
 }
 
@@ -40,7 +40,7 @@ build_data <- function(n_k, total_pop_size){
   return(state)
 }
 
-initial_states <- build_data(n_k=k,total_pop_size = PopulationSize)
+initial_states <- build_data(n_k=5,total_pop_size = PopulationSize)
 initial_states
 
 Q<-1000 # REMOVE ME - temp pop size
@@ -89,7 +89,7 @@ sir_modelAW <- function(time, state, parameters){
   
   ### In ########################################
   #The second to last delta is the last infection class, which is also unique, in that it doesn't mutate into anything. So it gets its own recursion. Gaining individuals from S in the first half, losing individuals from recovery, death, and detection, then gaining individuals from the second to last infection class via mutation.
- deltas[all_states-1] = parameters$trans*state['S']*I_n - (parameters$rec + parameters$death + det(k=n))*I_n + parameters$mut*state[all_states-2]
+  deltas[all_states-1] = parameters$trans*state['S']*I_n - (parameters$rec + parameters$death + det(k=n))*I_n + parameters$mut*state[all_states-2]
   
   # Pulling the indices for all infection classes except for I0 and In, since they should all have the same equation for change over time: gains from susceptibles based on transmission, loss from recovery, mutation, death, and detection, then gain from mutation in the previous class.
   
@@ -173,24 +173,3 @@ ggplot(data = out_long,
   scale_size_manual(values=c(0.5,0.5,0.75,0.75,0.75))
 
 #rm(list=ls())
-
-print(paste("Final Equilibrium of Total Infected is",Tots$value[nrow(Tots)] , sep=" "))
-
-
-
-#b<-parameters$birth
-alpha<-formals(det)$a
-beta<-parameters$trans
-d<-formals(det)$dMax
-delta<-parameters$death
-nu<-parameters$rec
-b<-parameters$birth
-
-# Analytical R0:
-(beta*exp(alpha))/(d + delta*exp(alpha) + nu*exp(alpha))
-
-
-# Analytical equilibrium:
-(b*exp(alpha)*beta - d*delta - exp(alpha)*delta^(2) - exp(alpha)*delta*nu)/
-  
-  (beta*(d + exp(alpha)*delta + exp(alpha)*nu))
