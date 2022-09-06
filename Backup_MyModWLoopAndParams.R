@@ -89,7 +89,7 @@ sir_modelAW <- function(time, state, parameters){
   
   ### In ########################################
   #The second to last delta is the last infection class, which is also unique, in that it doesn't mutate into anything. So it gets its own recursion. Gaining individuals from S in the first half, losing individuals from recovery, death, and detection, then gaining individuals from the second to last infection class via mutation.
- deltas[all_states-1] = parameters$trans*state['S']*I_n - (parameters$rec + parameters$death + det(k=n))*I_n + parameters$mut*state[all_states-2]
+  deltas[all_states-1] = parameters$trans*state['S']*I_n - (parameters$rec + parameters$death + det(k=n))*I_n + parameters$mut*state[all_states-2]
   
   # Pulling the indices for all infection classes except for I0 and In, since they should all have the same equation for change over time: gains from susceptibles based on transmission, loss from recovery, mutation, death, and detection, then gain from mutation in the previous class.
   
