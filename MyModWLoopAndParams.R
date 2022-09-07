@@ -40,6 +40,9 @@ build_data <- function(n_k, total_pop_size){
   return(state)
 }
 
+##########################################################################
+### INITIAL STATES:
+##########################################################################
 initial_states <- build_data(n_k=2,total_pop_size = PopulationSize)
 initial_states
 
@@ -89,7 +92,8 @@ sir_modelAW <- function(time, state, parameters){
   
   ### In ########################################
   #The second to last delta is the last infection class, which is also unique, in that it doesn't mutate into anything. So it gets its own recursion. Gaining individuals from S in the first half, losing individuals from recovery, death, and detection, then gaining individuals from the second to last infection class via mutation.
- deltas[all_states-1] = parameters$trans*state['S']*I_n - (parameters$rec + parameters$death + det(k=n))*I_n + parameters$mut*state[all_states-2]
+ deltas[all_states-1] = parameters$trans*state['S']*I_n - (parameters$rec + parameters$death + det(k=n-1))*I_n + parameters$mut*state[all_states-2]
+  print(paste("n = ", n, sep=""))
   
   # Pulling the indices for all infection classes except for I0 and In, since they should all have the same equation for change over time: gains from susceptibles based on transmission, loss from recovery, mutation, death, and detection, then gain from mutation in the previous class.
   
@@ -102,16 +106,16 @@ sir_modelAW <- function(time, state, parameters){
   inf_indices <- which((!names(state) %in% excluded_names))
   
   # Not sure If I need to do this, but I've set this up do recovery from class I0 and class In as well as death of recovered individuals. I then update this with recoveries from all other infection classes within the loop below. Then I put that into the deltas vector at the end. there may be a more elegant way of doing this using the sum_of_rel variable/function but I wasn't sure how that worked.
-  dR <- (parameters$rec +det(k=0))*state['I0']+(parameters$rec + det(k=all_states-2))*state[all_states-1] - parameters$death*state['R']
+  dR <- (parameters$rec +det(k=0))*state['I0']+(parameters$rec + det(k=n-1))*state[all_states-1] - parameters$death*state['R']
   
   # This iterator tracks how many mutations we are from 0, which is just tough to do when using indices, but juggling indices is tough if we try and iterate over the infection class number itself. So I just got lazy about it tbh. Hopefully it works?
   it <- 1
   
   for(i in inf_indices){
-    
+   
     # Get delta for current infection class, looping through all except 0 and n
     deltas[i] <- parameters$trans*state['S']*state[i] - (parameters$rec + parameters$mut + parameters$death + det(k=it))*state[i] + parameters$mut*state[i-1]
-    
+   # print(paste("hi", deltas[i], sep=" "))
     #get our recovered change - just add to it each time I think? This makes sense? Maybe? Hmmm.
     dR <- dR + (parameters$rec + det(k=it))*state[i] 
     
@@ -187,7 +191,7 @@ delta<-parameters$death
 nu<-parameters$rec
 
 # Analytical R0:
-
+(exp(alpha)*beta)/(d+exp(alpha)*delta+exp(alpha)*nu)
 
 # Analytical equilibrium:
 -((delta*(d - exp(alpha)*Q*beta + exp(alpha)*delta + exp(alpha)*nu))/(beta*(d + exp(alpha)*delta + exp(alpha)*nu)))
