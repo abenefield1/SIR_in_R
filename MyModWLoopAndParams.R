@@ -7,7 +7,7 @@ require(gridExtra)
 rm(list=ls())
 
 # Added a new function to create the data for k classes, so here it just creates the parameters
-parameters=data.frame(rec=0.2,trans=0.05, death=.1,birth=.1, mut=0.05)
+parameters=data.frame(rec=0.2,trans=0.003, death=0.1,birth=0.1, mut=0.05)
 #k=2
 PopulationSize<-1000
 #R0<- (parameters$birth * PopulationSize * parameters$trans) / ((parameters$death*PopulationSize) * (parameters$death + parameters$rec))
@@ -16,11 +16,11 @@ PopulationSize<-1000
 
 # Time points
 #time=seq(from=1,to=150,by=1/365)
-time=seq(from=1,to=150)
+time=seq(from=1,to=100)
 
 ##### detection function ######
 # Function to get detection rate with is an exponential decay function scaled by "a"
-det = function(k, a = 1, dMax=1){
+det = function(k, a = 0.9, dMax=1){
   return(dMax*exp(-k*a))
 }
 
@@ -40,13 +40,17 @@ build_data <- function(n_k, total_pop_size){
   return(state)
 }
 
+
+
+##########################################################################
 ##########################################################################
 ### INITIAL STATES:
+##########################################################################
 ##########################################################################
 initial_states <- build_data(n_k=2,total_pop_size = PopulationSize)
 initial_states
 
-Q<-1000 # REMOVE ME - temp pop size
+Q<-PopulationSize # REMOVE ME - temp pop size
 
 ######### SIR Model for k classes #######
 sir_modelAW <- function(time, state, parameters){
@@ -175,7 +179,8 @@ ggplot(data = out_long,
   xlab("Time (years)")+                                                  
   ylab("Prevalence") + scale_color_discrete(name="State")+
   scale_color_manual(values=c("red", "#e4ab18", "blue", "darkgreen", "black"))+
-  scale_size_manual(values=c(0.5,0.5,0.75,0.75,0.75))
+  scale_size_manual(values=c(0.5,0.5,0.75,0.75,0.75))+
+  ggtitle(paste("Alpha = ", formals(det)$a))
 
 #rm(list=ls())
 
